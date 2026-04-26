@@ -133,3 +133,12 @@ C:\Users\ユーザー名\AppData\Roaming\ChordProgressionApp\
 ## ポートフォリオ
 
 https://juryer.github.io/my-web-page/
+
+---
+## スクリーンショット
+
+<img src="https://github.com/user-attachments/assets/bbf28adb-2ea9-45cc-9e93-161f0936f5d1" width="50%">
+<br>
+<img src="https://github.com/user-attachments/assets/e783e129-dceb-41a4-be97-a097dcf9f0d0" width="50%">
+
+
