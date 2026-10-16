@@ -28,6 +28,8 @@
 | チップD&Dによるコード並び替え | ✗ | ✅ |
 | 選択式エクスポート | ✗ | ✅ |
 | 9・m9コード対応 | ✗ | ✅ |
+| セクションごと転調対応 | ✗ | ✅ |
+| 有名コード進行テンプレ（10種） | ✗ | ✅ |
 
 ---
 
@@ -40,9 +42,11 @@
 - レーティング機能（★1〜5）・並び替え（▲▼・ドラッグ&ドロップ）
 - コード進行単体のMIDI出力
 - 楽曲エディタ（キー設定・自動移調・歌詞入力）
+- **セクションごとの転調対応**（転調マーカー表示・テキストプレビュー反映）
 - MIDI出力（BPM・6種拍子・移調対応）
 - PNG画像・HTMLファイル・JSONエクスポート
 - JSONインポート（重複スキップ対応）
+- **有名コード進行テンプレ10種**（初回起動時に自動登録）
 - 3カラーテーマ（ダークパープル / ダークグリーン / ライト）
 
 ---
@@ -125,7 +129,7 @@ C:\Users\ユーザー名\AppData\Roaming\ChordProgressionApp\
 | MidiExporter | MIDIファイル出力 |
 | SettingsDialog | 設定ダイアログ |
 | Song / SongSection / SongRepository | 楽曲モデル・永続化 |
-| SongEditorWindow | 楽曲エディタ（キー設定・歌詞入力） |
+| SongEditorWindow | 楽曲エディタ（キー設定・歌詞入力・セクションごと転調対応） |
 | SongListWindow | 楽曲一覧・MIDI出力 |
 
 ---
@@ -133,12 +137,3 @@ C:\Users\ユーザー名\AppData\Roaming\ChordProgressionApp\
 ## ポートフォリオ
 
 https://juryer.github.io/my-web-page/
-
----
-## スクリーンショット
-
-<img src="https://github.com/user-attachments/assets/bbf28adb-2ea9-45cc-9e93-161f0936f5d1" width="50%">
-<br>
-<img src="https://github.com/user-attachments/assets/e783e129-dceb-41a4-be97-a097dcf9f0d0" width="50%">
-
-
