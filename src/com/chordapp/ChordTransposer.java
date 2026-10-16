@@ -183,6 +183,21 @@ public class ChordTransposer {
     }
 
     /**
+     * fromKeyからtoKeyへの半音数を返す（-6〜+5の範囲で返す）
+     */
+    public static int getSemitones(String fromKey, String toKey) {
+        String fromRoot = extractKeyRoot(fromKey);
+        String toRoot   = extractKeyRoot(toKey);
+        Integer fromIdx = NOTE_INDEX.get(fromRoot);
+        Integer toIdx   = NOTE_INDEX.get(toRoot);
+        if (fromIdx == null || toIdx == null) return 0;
+        int diff = (toIdx - fromIdx + 12) % 12;
+        // -6〜+5 の範囲で返す（例：+7より-5の方が自然）
+        if (diff > 6) diff -= 12;
+        return diff;
+    }
+
+    /**
      * 利用可能なキー一覧（移調先として表示する）
      */
     public static final String[] ALL_KEYS = {

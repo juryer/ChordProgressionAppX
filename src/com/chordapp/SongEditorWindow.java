@@ -359,13 +359,24 @@ public class SongEditorWindow extends JDialog {
         JLabel nameLabel = new JLabel(section.getSectionName());
         nameLabel.setFont(AppTheme.titleFont(15));
         nameLabel.setForeground(AppTheme.TEXT_PRIMARY);
+        nameBadge.add(hashLabel); nameBadge.add(nameLabel);
         if (section.getRepeatCount() > 1) {
             JLabel repeatLabel = new JLabel("×" + section.getRepeatCount());
             repeatLabel.setFont(AppTheme.bodyFont(11));
             repeatLabel.setForeground(AppTheme.ACCENT2);
-            nameBadge.add(hashLabel); nameBadge.add(nameLabel); nameBadge.add(repeatLabel);
-        } else {
-            nameBadge.add(hashLabel); nameBadge.add(nameLabel);
+            nameBadge.add(repeatLabel);
+        }
+        // 転調マーカー表示
+        if (section.getSectionKey() != null) {
+            String songKey = (String) songKeyCombo.getSelectedItem();
+            if (songKey == null) songKey = "C";
+            int semitones = ChordTransposer.getSemitones(songKey, section.getSectionKey());
+            String sign = semitones >= 0 ? "+" : "";
+            JLabel transposeLabel = new JLabel("🎵 Key: " + section.getSectionKey()
+                + "  (" + sign + semitones + ")");
+            transposeLabel.setFont(AppTheme.bodyFont(11));
+            transposeLabel.setForeground(new Color(255, 200, 80));
+            nameBadge.add(transposeLabel);
         }
         nameBadge.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -436,11 +447,12 @@ public class SongEditorWindow extends JDialog {
         String songKey = (String) songKeyCombo.getSelectedItem();
         if (songKey == null) songKey = "C";
 
-        // C基準 → 楽曲キーにトランスポーズ
-        List<String> transposed = ChordTransposer.transposeList(chords, "C", songKey);
+        // C基準 → セクションの実効キーにトランスポーズ
+        String effectiveKey = section.getEffectiveKey(songKey);
+        List<String> transposed = ChordTransposer.transposeList(chords, "C", effectiveKey);
 
         if (settings.getNoteMode() == AppSettings.NoteMode.DEGREE) {
-            return String.join("  ", DegreeConverter.convertList(transposed, songKey));
+            return String.join("  ", DegreeConverter.convertList(transposed, effectiveKey));
         }
         return String.join("  ", transposed);
     }
@@ -490,6 +502,30 @@ public class SongEditorWindow extends JDialog {
         });
         nameRow.add(presetCombo); nameRow.add(customNameField);
         form.add(nameRow);
+        form.add(Box.createVerticalStrut(14));
+
+        // 転調設定
+        form.add(fieldLabel("転調（このセクションのキー）"));
+        form.add(Box.createVerticalStrut(6));
+        JPanel addTransposeRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        addTransposeRow.setOpaque(false);
+        addTransposeRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JCheckBox addTransposeCheck = new JCheckBox("このセクションで転調する");
+        addTransposeCheck.setFont(AppTheme.bodyFont(13));
+        addTransposeCheck.setForeground(AppTheme.TEXT_PRIMARY);
+        addTransposeCheck.setBackground(AppTheme.BG_DARK);
+        addTransposeCheck.setOpaque(false);
+        addTransposeCheck.setFocusPainted(false);
+        JComboBox<String> addSectionKeyCombo = new JComboBox<>(ChordTransposer.ALL_KEYS);
+        addSectionKeyCombo.setFont(AppTheme.bodyFont(13));
+        addSectionKeyCombo.setBackground(AppTheme.BG_CARD);
+        addSectionKeyCombo.setForeground(AppTheme.TEXT_PRIMARY);
+        addSectionKeyCombo.setPreferredSize(new Dimension(80, 32));
+        addSectionKeyCombo.setEnabled(false);
+        addTransposeCheck.addActionListener(e -> addSectionKeyCombo.setEnabled(addTransposeCheck.isSelected()));
+        addTransposeRow.add(addTransposeCheck);
+        addTransposeRow.add(addSectionKeyCombo);
+        form.add(addTransposeRow);
         form.add(Box.createVerticalStrut(14));
 
         // Repeat count
@@ -574,6 +610,10 @@ public class SongEditorWindow extends JDialog {
             }
             SongSection sec = new SongSection(name);
             sec.setRepeatCount((Integer) repeatSpinner.getValue());
+            // 転調キー設定
+            if (addTransposeCheck.isSelected()) {
+                sec.setSectionKey((String) addSectionKeyCombo.getSelectedItem());
+            }
             if (fromRegBtn.isSelected() && !all.isEmpty()) {
                 int pidx = progCombo.getSelectedIndex();
                 if (pidx >= 0 && pidx < all.size()) {
@@ -634,6 +674,34 @@ public class SongEditorWindow extends JDialog {
         form.add(repeatSpin);
         form.add(Box.createVerticalStrut(10));
 
+        // 転調設定
+        form.add(fieldLabel("転調（このセクションのキー）"));
+        form.add(Box.createVerticalStrut(6));
+        JPanel transposeRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        transposeRow.setOpaque(false);
+        transposeRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JCheckBox transposeCheck = new JCheckBox("このセクションで転調する");
+        transposeCheck.setFont(AppTheme.bodyFont(13));
+        transposeCheck.setForeground(AppTheme.TEXT_PRIMARY);
+        transposeCheck.setBackground(AppTheme.BG_DARK);
+        transposeCheck.setOpaque(false);
+        transposeCheck.setFocusPainted(false);
+        transposeCheck.setSelected(section.getSectionKey() != null);
+        JComboBox<String> sectionKeyCombo = new JComboBox<>(ChordTransposer.ALL_KEYS);
+        sectionKeyCombo.setFont(AppTheme.bodyFont(13));
+        sectionKeyCombo.setBackground(AppTheme.BG_CARD);
+        sectionKeyCombo.setForeground(AppTheme.TEXT_PRIMARY);
+        sectionKeyCombo.setPreferredSize(new Dimension(80, 32));
+        sectionKeyCombo.setEnabled(section.getSectionKey() != null);
+        if (section.getSectionKey() != null) sectionKeyCombo.setSelectedItem(section.getSectionKey());
+        transposeCheck.addActionListener(e -> {
+            sectionKeyCombo.setEnabled(transposeCheck.isSelected());
+        });
+        transposeRow.add(transposeCheck);
+        transposeRow.add(sectionKeyCombo);
+        form.add(transposeRow);
+        form.add(Box.createVerticalStrut(10));
+
         // キー選択（コードセレクタのキー基準）
         String sectionKey = "C";
         if (section.getProgressionId() != null) {
@@ -688,6 +756,12 @@ public class SongEditorWindow extends JDialog {
             }
             section.setSectionName(newName);
             section.setRepeatCount((Integer)repeatSpin.getValue());
+            // 転調キー設定
+            if (transposeCheck.isSelected()) {
+                section.setSectionKey((String) sectionKeyCombo.getSelectedItem());
+            } else {
+                section.setSectionKey(null);
+            }
             List<String> newChords = selector.getSelectedChords();
             section.setChords(newChords);
             section.setLyrics(lyricsArea.getText().trim());
@@ -721,15 +795,22 @@ public class SongEditorWindow extends JDialog {
             for (SongSection sec : sections) {
                 sb.append("# ").append(sec.getSectionName());
                 if (sec.getRepeatCount() > 1) sb.append("  ×").append(sec.getRepeatCount());
+                // 転調マーカー
+                String effectiveKey = sec.getEffectiveKey(songKey);
+                if (sec.getSectionKey() != null) {
+                    int semitones = ChordTransposer.getSemitones(songKey, effectiveKey);
+                    String sign = semitones >= 0 ? "+" : "";
+                    sb.append("  [Key: ").append(effectiveKey).append("  転調").append(sign).append(semitones).append("]");
+                }
                 sb.append("\n");
                 if (sec.getChords().isEmpty()) {
                     sb.append("  （コードなし）\n");
                 } else {
-                    // C基準 → 楽曲キーにトランスポーズ
-                    List<String> transposed = ChordTransposer.transposeList(sec.getChords(), "C", songKey);
+                    // C基準 → セクションの実効キーにトランスポーズ
+                    List<String> transposed = ChordTransposer.transposeList(sec.getChords(), "C", effectiveKey);
                     List<String> displayChords;
                     if (settings.getNoteMode() == AppSettings.NoteMode.DEGREE) {
-                        displayChords = DegreeConverter.convertList(transposed, songKey);
+                        displayChords = DegreeConverter.convertList(transposed, effectiveKey);
                     } else {
                         displayChords = transposed;
                     }
